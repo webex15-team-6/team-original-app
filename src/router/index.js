@@ -16,6 +16,11 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
   },
+  {
+    path: "/firebase",
+    name: "Firebase",
+    component: () => import("../views/GetDataView.vue"),
+  },
 ]
 
 const router = createRouter({
