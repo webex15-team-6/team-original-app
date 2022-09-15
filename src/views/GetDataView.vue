@@ -18,7 +18,6 @@
           {{ index + 1 }}番目:{{ keiro }}
         </div>
         <div>費用:{{ information.cost }}円</div>
-        <div>Tag:{{ information.tag }}</div>
         <img v-bind:src="information.photo" alt="a" />
         <br />
       </div>
@@ -57,7 +56,6 @@ export default {
       bookMarks1: [],
       bookMarks2: [],
       target: "",
-      route: "",
     }
   },
   methods: {
