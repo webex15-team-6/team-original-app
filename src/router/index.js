@@ -19,6 +19,21 @@ const routes = [
     name: "MakeSchedule",
     component: MakeScheduleView,
   },
+  {
+    path: "/firebase",
+    name: "Firebase",
+    component: () => import("../views/GetDataView.vue"),
+  },
+  {
+    path: "/detail",
+    name: "detail",
+    component: () => import("../views/DetailView.vue"),
+  },
+  {
+    path: "/showbookmark",
+    name: "showbookmark",
+    component: () => import("../views/ShowBookmarkView.vue"),
+  },
 ]
 
 const router = createRouter({
