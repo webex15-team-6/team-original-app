@@ -15,6 +15,7 @@
       </div>
       <div>################################################</div>
     </div>
+  <button v-on:click="gotoSchedulePage">スケジュールを作成する</button>
   </div>
 </template>
 
@@ -55,6 +56,11 @@ export default {
         //console.log(this.datas)
       }
     })
+  },
+  methods: {
+    gotoSchedulePage() {
+      this.$router.push("/MakeSchedule")
+    },
   },
 }
 </script>
