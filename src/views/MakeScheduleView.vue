@@ -1,73 +1,96 @@
 <template>
-  <h1>スケジュールの作成（{{ dayCounter }}日目）</h1>
-  <ul class="schedule-list__container">
-    <li
-      class="schedule-list"
-      v-for="(schedule, index) in schedules"
-      v-bind:key="index"
-    >
-      <div
-        v-on:mouseover="mouseOverAction(index)"
-        v-on:mouseleave="mouseLeaveAction(index)"
-        v-if="schedule.day === this.dayCounter"
+  <div v-if="!confirmFlag">
+    <h1>スケジュールの作成（{{ dayCounter }}日目）</h1>
+    <ul class="schedule-list__container">
+      <li
+        class="schedule-list"
+        v-for="(schedule, index) in schedules"
+        v-bind:key="index"
       >
-        <h2 class="schedule__main">
-          {{ schedule.time }} {{ schedule.activity }}
-        </h2>
-        <div>{{ schedule.detail }}</div>
-        <button
-          v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
-          v-on:click="makeNewSchedule(index), mouseLeaveAction(index)"
+        <div
+          v-on:mouseover="mouseOverAction(index)"
+          v-on:mouseleave="mouseLeaveAction(index)"
+          v-if="schedule.day === this.dayCounter"
         >
+          <h2 class="schedule__main">
+            {{ schedule.time }} {{ schedule.activity }}
+          </h2>
+          <div>{{ schedule.detail }}</div>
+          <button
+            v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
+            v-on:click="makeNewSchedule(index), mouseLeaveAction(index)"
+          >
+            下に追加
+          </button>
+          <button
+            v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
+            v-on:click="deleteSchedule(index)"
+          >
+            削除
+          </button>
+        </div>
+
+        <div v-if="schedule.isMakingAfterSKD">
+          <input type="time" step="300" v-model="time" />
+          <div>やったこと</div>
+          <input type="text" v-model="activity" required />
+          <div>詳細</div>
+          <input type="text" v-model="detail" />
+          <div>
+            <button
+              v-on:click="addNewSKD(index)"
+              v-bind:disabled="!isCompleteForm"
+            >
+              完了
+            </button>
+            <button v-on:click="cancelMaking(index)">取り消し</button>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <div v-if="isTodayScheduleEmpty">
+      <input type="time" step="300" v-model="time" />
+      <div>やったこと</div>
+      <input type="text" v-model="activity" />
+      <div>詳細</div>
+      <input type="text" v-model="detail" />
+      <div>
+        <button v-on:click="addFirstSKD" v-bind:disabled="!isCompleteForm">
           追加
         </button>
       </div>
+    </div>
 
-      <div v-if="schedule.isMakingAfterSKD">
-        <input type="time" step="300" v-model="time" />
-        <div>やったこと</div>
-        <input type="text" v-model="activity" required />
-        <div>詳細</div>
-        <input type="text" v-model="detail" />
-        <div>
-          <button
-            v-on:click="addNewSKD(index)"
-            v-bind:disabled="!isCompleteForm"
-          >
-            完了
-          </button>
-        </div>
-      </div>
-    </li>
-  </ul>
-
-  <div v-if="isTodayScheduleEmpty">
-    <input type="time" step="300" v-model="time" />
-    <div>やったこと</div>
-    <input type="text" v-model="activity" />
-    <div>詳細</div>
-    <input type="text" v-model="detail" />
+    <button v-if="dayCounter !== 1" v-on:click="goToPrevDay">前の日へ</button>
+    <button
+      v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
+      v-on:click="goToNextDay"
+    >
+      次の日へ
+    </button>
     <div>
-      <button v-on:click="addFirstSKD" v-bind:disabled="!isCompleteForm">
-        追加
+      <button
+        v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
+        v-on:click="goToConfirm"
+      >
+        完成
       </button>
     </div>
   </div>
+  <ConfirmSchedule v-bind:schedules="this.schedules" v-if="confirmFlag" />
 
-  <button v-if="dayCounter !== 1" v-on:click="goToPrevDay">前の日へ</button>
-  <button v-bind:disabled="isTodayScheduleEmpty" v-on:click="goToNextDay">
-    次の日へ
-  </button>
-  <div>
-    <button v-on:click="postSchedule">投稿</button>
-  </div>
+  <button v-if="confirmFlag" v-on:click="postSchedule">投稿</button>
+  <button v-if="confirmFlag" v-on:click="goBackMakePage">戻る</button>
 </template>
 
 <script>
 import { collection, addDoc } from "firebase/firestore"
 import { db } from "../firebase.js"
+import ConfirmSchedule from "../components/ConfirmSchedule.vue"
 
 export default {
+  components: { ConfirmSchedule },
   data() {
     return {
       totalSchedules: [],
@@ -77,6 +100,7 @@ export default {
       activity: "",
       dayCounter: 1,
       isMakingFirstSKD: false,
+      confirmFlag: false,
     }
   },
   methods: {
@@ -107,6 +131,9 @@ export default {
     },
     async submitSKD() {
       await addDoc(collection(db, "hoge"), this.schedules[0])
+    },
+    deleteSchedule(idx) {
+      this.schedules.splice(idx, 1)
     },
     isValidTime(pt, nt, ct) {
       pt = pt.split(":")
@@ -164,7 +191,9 @@ export default {
     },
     getNextTime(idx) {
       if (idx < this.schedules.length - 1) {
-        return this.schedules[idx + 1].time
+        if (this.schedules[idx + 1].day === this.dayCounter) {
+          return this.schedules[idx + 1].time
+        }
       }
 
       return "23:59"
@@ -174,6 +203,12 @@ export default {
     },
     goToPrevDay() {
       this.dayCounter = this.dayCounter - 1
+    },
+    goToConfirm() {
+      this.confirmFlag = true
+    },
+    goBackMakePage() {
+      this.confirmFlag = false
     },
     async postSchedule() {
       // 各Dayごとにアップしていく
@@ -189,6 +224,11 @@ export default {
       }
 
       alert("スケジュールを投稿しました")
+    },
+    cancelMaking(idx) {
+      this.schedules[idx].isMakingAfterSKD = false
+      this.activity = ""
+      this.detail = ""
     },
   },
   computed: {

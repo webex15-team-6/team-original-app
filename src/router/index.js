@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "../views/HomeView.vue"
 import AboutView from "../views/AboutView.vue"
-import MakeItineraryView from "../views/MakeItineraryView.vue"
-import PostItineraryView from "../views/PostItineraryView.vue"
+import MakeScheduleView from "../views/MakeScheduleView.vue"
 
 const routes = [
   {
@@ -16,14 +15,9 @@ const routes = [
     component: AboutView,
   },
   {
-    path: "/makeSchedule",
-    name: "makeSchedule",
-    component: MakeItineraryView,
-  },
-  {
-    path: "/postItinerary",
-    name: "postSchedule",
-    component: PostItineraryView,
+    path: "/MakeSchedule",
+    name: "MakeSchedule",
+    component: MakeScheduleView,
   },
 ]
 
