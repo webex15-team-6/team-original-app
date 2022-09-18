@@ -1,93 +1,179 @@
 <template>
-  <div v-if="!confirmFlag">
-    <h1>スケジュールの作成（{{ dayCounter }}日目）</h1>
-    <ul class="schedule-list__container">
-      <li
-        class="schedule-list"
-        v-for="(schedule, index) in schedules"
-        v-bind:key="index"
-      >
-        <div
-          v-on:mouseover="mouseOverAction(index)"
-          v-on:mouseleave="mouseLeaveAction(index)"
-          v-if="schedule.day === this.dayCounter"
-        >
-          <h2 class="schedule__main">
-            {{ schedule.time }} {{ schedule.activity }}
-          </h2>
-          <div>{{ schedule.detail }}</div>
-          <button
-            v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
-            v-on:click="makeNewSchedule(index), mouseLeaveAction(index)"
-          >
-            下に追加
-          </button>
-          <button
-            v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
-            v-on:click="deleteSchedule(index)"
-          >
-            削除
-          </button>
-        </div>
-
-        <div v-if="schedule.isMakingAfterSKD">
-          <input type="time" step="300" v-model="time" />
-          <div>やったこと</div>
-          <input type="text" v-model="activity" required />
-          <div>詳細</div>
-          <input type="text" v-model="detail" />
-          <div>
-            <button
-              v-on:click="addNewSKD(index)"
-              v-bind:disabled="!isCompleteForm"
-            >
-              完了
-            </button>
-            <button v-on:click="cancelMaking(index)">取り消し</button>
-          </div>
-        </div>
-      </li>
-    </ul>
-
-    <div v-if="isTodayScheduleEmpty">
-      <input type="time" step="300" v-model="time" />
-      <div>やったこと</div>
-      <input type="text" v-model="activity" />
-      <div>詳細</div>
-      <input type="text" v-model="detail" />
+  <div v-if="inputMode === 0">
+    <div>
+      ユーザー名
+      <input type="text" v-model="userName" />
+    </div>
+    <div>
+      旅のタイトル
+      <input type="text" v-model="tripTitle" />
+    </div>
+    <div>日程 <input type="date" v-model="tripDate" /></div>
+    <div>何日間<input type="number" v-model="howManyDays" /></div>
+    <div>
       <div>
-        <button v-on:click="addFirstSKD" v-bind:disabled="!isCompleteForm">
-          追加
-        </button>
+        男性<input type="number" v-model="numberMan" /> 女性<input
+          type="number"
+          v-model="numberWoman"
+        />
       </div>
     </div>
-
-    <button v-if="dayCounter !== 1" v-on:click="goToPrevDay">前の日へ</button>
-    <button
-      v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
-      v-on:click="goToNextDay"
-    >
-      次の日へ
-    </button>
+    <div>
+      サムネイル画像
+      <input type="text" @click="changeThumbnail" v-model="inputThumbnail" />
+      <div><button v-on:click="confirmThumbnail()">確認</button></div>
+    </div>
+    <img
+      v-if="isConfirmThumbnail"
+      v-bind:src="inputThumbnail"
+      alt="thumbnail"
+      width="300"
+      height="200"
+    />
     <div>
       <button
-        v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
-        v-on:click="goToConfirm"
+        v-bind:disabled="!isCompleteFirstForm"
+        v-on:click="gotoSchedulePage"
       >
-        完成
+        完了
       </button>
     </div>
   </div>
-  <ConfirmSchedule v-bind:schedules="this.schedules" v-if="confirmFlag" />
 
-  <button v-if="confirmFlag" v-on:click="postSchedule">投稿</button>
-  <button v-if="confirmFlag" v-on:click="goBackMakePage">戻る</button>
+  <div v-if="inputMode === 1">
+    <div v-if="overviewFlag">
+      <h1>概要（{{ dayCounter }}日目）</h1>
+      <div>都道府県<input type="text" v-model="inputPrefecture" /></div>
+      <div>費用<input type="text" v-model="inputCost" />円</div>
+      <ul>
+        <li
+          v-for="(route, index) in routes.filter(
+            (route) => route.day === dayCounter
+          )"
+          v-bind:key="index"
+        >
+          <div v-if="route.day === this.dayCounter">
+            {{ index + 1 }}番目： {{ route.place }}
+          </div>
+        </li>
+      </ul>
+      <div>
+        経路<input type="text" v-model="inputRoute" /> 参考画像<input
+          type="text"
+          @click="changePhoto"
+          v-model="inputPhoto"
+        />
+        <button v-on:click="confirmPhoto()">確認</button>
+      </div>
+      <img
+        v-if="isConfirmPhoto"
+        v-bind:src="inputPhoto"
+        alt="photo"
+        width="300"
+        height="200"
+      />
+      <div>
+        <button @click="addRoutes" v-bind:disabled="!isCompleteRouteForm">
+          追加
+        </button>
+      </div>
+      <div>
+        <button @click="addOverview" v-if="isCompleteOverviewForm">完了</button>
+      </div>
+    </div>
+    <div v-if="!overviewFlag">
+      <h1>スケジュールの作成（{{ dayCounter }}日目）</h1>
+      <ul class="schedule-list__container">
+        <li
+          class="schedule-list"
+          v-for="(schedule, index) in schedules"
+          v-bind:key="index"
+        >
+          <div
+            v-on:mouseover="mouseOverAction(index)"
+            v-on:mouseleave="mouseLeaveAction(index)"
+            v-if="schedule.day === this.dayCounter"
+          >
+            <h2 class="schedule__main">
+              {{ schedule.time }} {{ schedule.activity }}
+            </h2>
+            <div>{{ schedule.detail }}</div>
+            <button
+              v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
+              v-on:click="makeNewSchedule(index), mouseLeaveAction(index)"
+            >
+              下に追加
+            </button>
+            <button
+              v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
+              v-on:click="deleteSchedule(index)"
+            >
+              削除
+            </button>
+          </div>
+
+          <div v-if="schedule.isMakingAfterSKD">
+            <input type="time" step="300" v-model="time" />
+            <div>やったこと</div>
+            <input type="text" v-model="activity" required />
+            <div>詳細</div>
+            <input type="text" v-model="detail" />
+            <div>
+              <button
+                v-on:click="addNewSKD(index)"
+                v-bind:disabled="!isCompleteForm"
+              >
+                完了
+              </button>
+              <button v-on:click="cancelMaking(index)">取り消し</button>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <div v-if="isTodayScheduleEmpty">
+        <input type="time" step="300" v-model="time" />
+        <div>やったこと</div>
+        <input type="text" v-model="activity" />
+        <div>詳細</div>
+        <input type="text" v-model="detail" />
+        <div>
+          <button v-on:click="addFirstSKD" v-bind:disabled="!isCompleteForm">
+            追加
+          </button>
+        </div>
+      </div>
+
+      <button v-if="dayCounter !== 1" v-on:click="goToPrevDay">前の日へ</button>
+      <button
+        v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
+        v-on:click="goToNextDay"
+        v-if="!isMaxDay"
+      >
+        次の日へ
+      </button>
+      <div>
+        <button
+          v-if="this.dayCounter === this.howManyDays"
+          v-bind:disabled="isTodayScheduleEmpty || isMakingAnySchedule"
+          v-on:click="goToConfirm"
+        >
+          完成
+        </button>
+      </div>
+    </div>
+  </div>
+  <ConfirmSchedule v-bind:schedules="this.schedules" v-if="inputMode === 2" />
+
+  <button v-if="inputMode === 2" v-on:click="postSchedule">投稿</button>
+  <button v-if="inputMode === 2" v-on:click="goBackMakePage">戻る</button>
 </template>
 
 <script>
 import { collection, addDoc } from "firebase/firestore"
 import { db } from "../firebase.js"
 import ConfirmSchedule from "../components/ConfirmSchedule.vue"
+import { doc, setDoc } from "firebase/firestore"
 
 export default {
   components: { ConfirmSchedule },
@@ -101,6 +187,25 @@ export default {
       dayCounter: 1,
       isMakingFirstSKD: false,
       confirmFlag: false,
+      inputMode: 0,
+      inputThumbnail: "",
+      isConfirmThumbnail: false,
+      userName: "",
+      tripTitle: "",
+      tripDate: "",
+      numberMan: "",
+      numberWoman: "",
+      howManyDays: "",
+      routes: [],
+      inputRoute: "",
+      photos: [],
+      inputPhoto: "",
+      inputCost: "",
+      inputPrefecture: "",
+      prefectures: [],
+      costs: [],
+      isConfirmPhoto: false,
+      overviewFlag: true,
     }
   },
   methods: {
@@ -200,27 +305,77 @@ export default {
     },
     goToNextDay() {
       this.dayCounter = this.dayCounter + 1
+      this.overviewFlag = true
+
+      this.inputPrefecture = ""
+      this.inputCost = ""
     },
     goToPrevDay() {
       this.dayCounter = this.dayCounter - 1
     },
     goToConfirm() {
-      this.confirmFlag = true
+      this.inputMode = 2
     },
     goBackMakePage() {
-      this.confirmFlag = false
+      this.inputMode = 1
     },
     async postSchedule() {
-      // 各Dayごとにアップしていく
+      // overviewの投稿
+      const overvieRef = doc(
+        db,
+        "schedule",
+        this.userName,
+        this.tripTitle,
+        "overview"
+      )
+
+      await setDoc(overvieRef, {
+        thumbnail: this.inputThumbnail,
+        man: this.numberMan,
+        woman: this.numberWoman,
+        date: this.tripDate,
+        howManyDays: this.howManyDays,
+      })
+
+      const tmpSchedule = []
+
       for (let i = 0; i < this.schedules.length; i++) {
-        const tmp = {
-          day: this.schedules[i].day,
-          time: this.schedules[i].time,
+        tmpSchedule.push({
           activity: this.schedules[i].activity,
           detail: this.schedules[i].detail,
-        }
+          time: this.schedules[i].time,
+          day: this.schedules[i].day,
+        })
+      }
 
-        await addDoc(collection(db, "Day" + tmp.day), tmp)
+      // 各Dayのスケジュール投稿
+      for (let d = 1; d <= this.howManyDays; d++) {
+        const filterSchedule = tmpSchedule.filter(
+          (schedule) => schedule.day === d
+        )
+
+        const filterRoute = this.routes.filter((route) => route.day === d)
+        const filterCost = this.costs.filter((cost) => cost.day === d)
+        const filterPrefecture = this.prefectures.filter(
+          (prefecture) => prefecture.day === d
+        )
+        const filterPhoto = this.photos.filter((photo) => photo.day === d)
+
+        const DayRef = doc(
+          db,
+          "schedule",
+          this.userName,
+          this.tripTitle,
+          "Day" + d
+        )
+
+        await setDoc(DayRef, {
+          schedule: filterSchedule,
+          photo: filterPhoto,
+          cost: filterCost,
+          route: filterRoute,
+          prefecture: filterPrefecture,
+        })
       }
 
       alert("スケジュールを投稿しました")
@@ -229,6 +384,39 @@ export default {
       this.schedules[idx].isMakingAfterSKD = false
       this.activity = ""
       this.detail = ""
+    },
+    confirmThumbnail() {
+      this.isConfirmThumbnail = true
+    },
+    changeThumbnail() {
+      this.isConfirmThumbnail = false
+    },
+    confirmPhoto() {
+      this.isConfirmPhoto = true
+    },
+    changePhoto() {
+      this.isConfirmPhoto = false
+    },
+    async gotoSchedulePage() {
+      this.inputMode = 1
+    },
+    addRoutes() {
+      this.routes.push({ place: this.inputRoute, day: this.dayCounter })
+      this.inputRoute = ""
+
+      this.photos.push({ photo: this.inputPhoto, day: this.dayCounter })
+      this.inputPhoto = ""
+
+      this.isConfirmPhoto = false
+    },
+    addOverview() {
+      this.costs.push({ cost: this.inputCost, day: this.dayCounter })
+
+      this.prefectures.push({
+        prefecture: this.inputPrefecture,
+        day: this.dayCounter,
+      })
+      this.overviewFlag = false
     },
   },
   computed: {
@@ -260,11 +448,56 @@ export default {
     isCompleteForm() {
       let ret = false
 
-      if (this.time !== "" && this.activity !== "") {
+      if (this.time !== "" && this.activity !== "" && this.detail) {
         ret = true
       }
 
       return ret
+    },
+    isCompleteFirstForm() {
+      let ret = false
+
+      if (
+        this.userName !== "" &&
+        this.tripTitle !== "" &&
+        this.inputThumbnail !== "" &&
+        this.tripDate !== "" &&
+        this.numberMan !== "" &&
+        this.numberWoman !== "" &&
+        this.howManyDays !== ""
+      ) {
+        ret = true
+      }
+
+      return ret
+    },
+    isCompleteRouteForm() {
+      let ret = false
+
+      if (this.inputPhoto !== "" && this.inputRoute !== "") {
+        ret = true
+      }
+
+      return ret
+    },
+    isCompleteOverviewForm() {
+      let ret = false
+
+      if (
+        this.routes.filter((p) => p.day === this.dayCounter).length !== 0 &&
+        this.inputCost !== "" &&
+        this.inputPrefecture !== ""
+      ) {
+        ret = true
+      }
+
+      return ret
+    },
+    isMaxDay() {
+      if (this.dayCounter === this.howManyDays) {
+        return true
+      }
+      return false
     },
   },
 }
