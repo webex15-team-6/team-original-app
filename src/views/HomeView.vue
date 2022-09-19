@@ -2,8 +2,7 @@
   <div>
     <h1>旅のしおり</h1>
     <div>
-      <h3>scheduleから取ってきたデータを一覧表示</h3>
-      <input v-model="target" placeholder="都道府県/目的地から探す" />
+      <input v-model="target" placeholder="都道府県から探す" />
       <button v-on:click="Search">Search</button>
       <div v-for="(user, index) in user_travel_data" v-bind:key="index">
         <div>{{ user.name }}/{{ user.travelname }}</div>
@@ -39,21 +38,20 @@ export default {
     }
   },
   methods: {
-    /*検索関数 後回し*/
+    /*検索関数 完成*/
     async Search() {
       this.user_travel_data = [] //初期化
-      //console.log(this.target)
-      const q = query(
-        //表示用配列の長さに依存する
-        collection(db, "schedule"),
-        where("test", "==", this.target)
-      )
-      const querySnapshot = await getDocs(q)
-      querySnapshot.forEach((doc) => {
-        //console.log(doc.id, "=>", doc.data())
-        this.user_travel_data.push(doc.data())
-        //console.log("確認", this.datas)
-      })
+      //走査
+      for (let i = 0; i < this.users.length; i++) {
+        let q = query(
+          collection(db, "schedule01", this.users[i], "Travel"),
+          where("prefectures", "array-contains", this.target)
+        )
+        let querySnapshot = await getDocs(q)
+        querySnapshot.forEach((doc) => {
+          this.user_travel_data.push(doc.data())
+        })
+      }
     },
     gotoSchedulePage() {
       this.$router.push("/MakeSchedule")
@@ -88,8 +86,6 @@ export default {
           )
         }
       })
-    //console.log("user名", this.users)
-    //console.log("user data :", this.user_travel_data)
   },
 }
 </script>
