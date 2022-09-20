@@ -20,11 +20,6 @@ const routes = [
     component: MakeScheduleView,
   },
   {
-    path: "/firebase",
-    name: "Firebase",
-    component: () => import("../views/GetDataView.vue"),
-  },
-  {
     path: "/detail",
     name: "detail",
     component: () => import("../views/DetailView.vue"),
