@@ -83,7 +83,11 @@
           追加
         </button>
       </div>
-      <div><button @click="addOverview">完了</button></div>
+      <div>
+        <button @click="addOverview" v-bind:disabled="!isCompleteOverviewForm">
+          完了
+        </button>
+      </div>
     </div>
     <div v-if="!overviewFlag">
       <h1>スケジュールの作成（{{ dayCounter }}日目）</h1>
