@@ -1,27 +1,32 @@
 <template>
   <div v-if="inputMode === 0">
-    <div>
-      ユーザー名
-      <input type="text" v-model="userName" />
+    <div class="username-form">
+      <label class="label-username"> ユーザー名 </label>
+      <input type="text" v-model="userName" class="input-username" />
+    </div>
+    <div class="traveltitle-form">
+      <label class="label-traveltitle">旅のタイトル</label>
+      <input type="text" v-model="tripTitle" class="input-label-traveltitle" />
+    </div>
+    <div class="date-form">
+      <label class="label-date">日程</label>
+      <input type="date" v-model="tripDate" class="input-date" />
+    </div>
+    <div class="howmanydays-form">
+      <label>何日間</label><input type="number" v-model="howManyDays" />
     </div>
     <div>
-      旅のタイトル
-      <input type="text" v-model="tripTitle" />
-    </div>
-    <div>日程 <input type="date" v-model="tripDate" /></div>
-    <div>何日間<input type="number" v-model="howManyDays" /></div>
-    <div>
-      <div>
-        男性<input type="number" v-model="numberMan" /> 女性<input
-          type="number"
-          v-model="numberWoman"
-        />
-      </div>
+      <label>男性</label>
+      <input type="number" v-model="numberMan" class="input-man" />
+      <span>女性</span
+      ><input type="number" v-model="numberWoman" class="input-woman" />
     </div>
     <div>
-      サムネイル画像
+      <label>サムネイル画像</label>
       <input type="text" @click="changeThumbnail" v-model="inputThumbnail" />
-      <div><button v-on:click="confirmThumbnail()">確認</button></div>
+      <button v-on:click="confirmThumbnail()" class="thumbnail-confirm-button">
+        確認
+      </button>
     </div>
     <img
       v-if="isConfirmThumbnail"
@@ -34,6 +39,7 @@
       <button
         v-bind:disabled="!isCompleteFirstForm"
         v-on:click="gotoSchedulePage"
+        class="gotoSchedulePage-button"
       >
         完了
       </button>
@@ -78,7 +84,9 @@
         </button>
       </div>
       <div>
-        <button @click="addOverview" v-if="isCompleteOverviewForm">完了</button>
+        <button @click="addOverview" v-bind:disabled="!isCompleteOverviewForm">
+          完了
+        </button>
       </div>
     </div>
     <div v-if="!overviewFlag">
@@ -319,12 +327,91 @@ export default {
     goBackMakePage() {
       this.inputMode = 1
     },
+    // async postSchedule() {
+    //   // overviewの投稿
+    //   const overvieRef = doc(
+    //     db,
+    //     "schedule",
+    //     this.userName,
+    //     this.tripTitle,
+    //     "overview"
+    //   )
+
+    //   await setDoc(overvieRef, {
+    //     thumbnail: this.inputThumbnail,
+    //     man: this.numberMan,
+    //     woman: this.numberWoman,
+    //     date: this.tripDate,
+    //     howManyDays: this.howManyDays,
+    //   })
+
+    //   const tmpSchedule = []
+
+    //   for (let i = 0; i < this.schedules.length; i++) {
+    //     tmpSchedule.push({
+    //       activity: this.schedules[i].activity,
+    //       detail: this.schedules[i].detail,
+    //       time: this.schedules[i].time,
+    //       day: this.schedules[i].day,
+    //     })
+    //   }
+
+    //   // 各Dayのスケジュール投稿
+    //   for (let d = 1; d <= this.howManyDays; d++) {
+    //     const filterSchedule = tmpSchedule.filter(
+    //       (schedule) => schedule.day === d
+    //     )
+
+    //     const filterRoute = this.routes.filter((route) => route.day === d)
+    //     const filterCost = this.costs.filter((cost) => cost.day === d)
+    //     const filterPrefecture = this.prefectures.filter(
+    //       (prefecture) => prefecture.day === d
+    //     )
+    //     const filterPhoto = this.photos.filter((photo) => photo.day === d)
+
+    //     const DayRef = doc(
+    //       db,
+    //       "schedule",
+    //       this.userName,
+    //       this.tripTitle,
+    //       "Day" + d
+    //     )
+
+    //     await setDoc(DayRef, {
+    //       schedule: filterSchedule,
+    //       photo: filterPhoto,
+    //       cost: filterCost,
+    //       route: filterRoute,
+    //       prefecture: filterPrefecture,
+    //     })
+    //   }
+
+    //   // usernameへの投稿
+    //   const tmpPrefecture = []
+
+    //   for (let i = 0; i < this.prefectures.length; i++) {
+    //     tmpPrefecture.push(this.prefectures[i].prefecture)
+    //   }
+
+    //   await setDoc(doc(db, "schedule", this.userName), {
+    //     list: {
+    //       prefectures: tmpPrefecture,
+    //       name: this.userName,
+    //       thumbnail: this.inputThumbnail,
+    //       travel_name: this.tripTitle,
+    //     },
+    //   })
+
+    //   alert("スケジュールを投稿しました")
+    // },
     async postSchedule() {
       // overviewの投稿
       const overvieRef = doc(
         db,
-        "schedule",
+        "schedule01",
         this.userName,
+        "Travel",
+        this.tripTitle,
         this.tripTitle,
         "overview"
       )
@@ -363,8 +450,10 @@ export default {
 
         const DayRef = doc(
           db,
-          "schedule",
+          "schedule01",
           this.userName,
+          "Travel",
+          this.tripTitle,
           this.tripTitle,
           "Day" + d
         )
@@ -378,7 +467,29 @@ export default {
         })
       }
 
+      // 和さん用投稿
+      await setDoc(doc(db, "schedule01", this.userName), {
+        name: this.userName,
+      })
+
+      const tmpPrefecture = []
+
+      for (let i = 0; i < this.prefectures.length; i++) {
+        tmpPrefecture.push(this.prefectures[i].prefecture)
+      }
+
+      await setDoc(
+        doc(db, "schedule01", this.userName, "Travel", this.tripTitle),
+        {
+          name: this.userName,
+          thumbnail: this.inputThumbnail,
+          travelname: this.tripTitle,
+          prefectures: tmpPrefecture,
+        }
+      )
+
       alert("スケジュールを投稿しました")
+      this.$router.push("/")
     },
     cancelMaking(idx) {
       this.schedules[idx].isMakingAfterSKD = false
@@ -448,7 +559,7 @@ export default {
     isCompleteForm() {
       let ret = false
 
-      if (this.time !== "" && this.activity !== "" && this.detail) {
+      if (this.time !== "" && this.activity !== "") {
         ret = true
       }
 
@@ -483,11 +594,7 @@ export default {
     isCompleteOverviewForm() {
       let ret = false
 
-      if (
-        this.routes.filter((p) => p.day === this.dayCounter).length !== 0 &&
-        this.inputCost !== "" &&
-        this.inputPrefecture !== ""
-      ) {
+      if (this.inputCost !== "" && this.inputPrefecture !== "") {
         ret = true
       }
 
@@ -507,4 +614,12 @@ export default {
 ul {
   list-style: none;
 }
+
+/* 
+input.input-username {
+  margin-left: 10px;
+}
+input.input-traveltitle {
+  margin-left: 10px;
+} */
 </style>
