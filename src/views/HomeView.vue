@@ -1,11 +1,12 @@
 <template>
   <div>
-    <h1>旅のしおり</h1>
     <div>
       <input v-model="target" placeholder="都道府県から探す" />
       <button v-on:click="Search">Search</button>
+      <br />
+      <br />
       <div v-for="(user, index) in user_travel_data" v-bind:key="index">
-        <div>{{ user.name }}/{{ user.travelname }}</div>
+        <div>{{ user.name }} / {{ user.travelname }}</div>
         <router-link to="/detail"
           ><img
             v-on:click="addUserInf(user.name, user.travelname)"
@@ -14,6 +15,8 @@
             width="300"
             height="200"
         /></router-link>
+        <br />
+        <br />
       </div>
     </div>
     <br />
@@ -21,6 +24,8 @@
     <button v-on:click="gotoSchedulePage">スケジュールを作成する</button>
   </div>
 </template>
+
+<style></style>
 
 <script>
 import { collection, getDocs, query, where } from "firebase/firestore"
