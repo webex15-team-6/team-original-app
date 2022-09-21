@@ -6,11 +6,16 @@
       v-for="(schedule, index) in this.schedules"
       v-bind:key="index"
     >
-      <h2 v-if="isNewDay(index)">{{ schedule.day }}日目</h2>
-      <h3 class="schedule__main">
-        {{ schedule.time }} {{ schedule.activity }}
-      </h3>
+      <h2 v-if="isNewDay(index)" class="date">{{ schedule.day }}日目</h2>
+      <h3 class="schedule">{{ schedule.time }} {{ schedule.activity }}</h3>
       <div>{{ schedule.detail }}</div>
+      <img
+        v-if="schedule.photo !== ''"
+        v-bind:src="schedule.photo"
+        alt="refPhoto"
+        width="300"
+        height="200"
+      />
     </li>
   </ul>
 </template>
@@ -33,3 +38,12 @@ export default {
   },
 }
 </script>
+
+<style>
+.date {
+  margin-right: 40px;
+}
+.schedule {
+  margin-right: 40px;
+}
+</style>
