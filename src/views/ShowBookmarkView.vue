@@ -12,9 +12,12 @@
               ◇ {{ schedule_detail.time }}&nbsp;{{ schedule_detail.activity }}
             </div>
           </div>
-          <div class="indent">・{{ schedule_detail.detail }}</div>
+          <div class="indent" v-if="schedule_detail.detail !== ''">
+            ・{{ schedule_detail.detail }}
+          </div>
           <img
             v-bind:src="schedule_detail.photo"
+            v-if="schedule_detail.photo !== ''"
             alt="Photo URL not found"
             width="300"
             height="200"
