@@ -9,7 +9,7 @@
         <div v-for="(schedule_detail, index) in info" v-bind:key="index">
           <div class="block">
             <div>
-              ◇{{ schedule_detail.time }}&nbsp;{{ schedule_detail.activity }}
+              ◇ {{ schedule_detail.time }}&nbsp;{{ schedule_detail.activity }}
             </div>
           </div>
           <div class="indent">・{{ schedule_detail.detail }}</div>
