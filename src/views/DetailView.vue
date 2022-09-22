@@ -60,7 +60,7 @@ table {
 }
 
 th {
-  width: 230px; /* 幅指定 */
+  width: 200px; /* 幅指定 */
   height: 80px; /* 高さ指定 */
   background-color: #f2f2f2;
 }
@@ -72,8 +72,6 @@ th {
 }
 
 .flex .image {
-  width: auto;
-  height: auto;
   margin: 0;
   padding: 0;
   overflow: hidden;
