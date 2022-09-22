@@ -14,7 +14,7 @@
     </div>
     <div class="howmanydays-form">
       <section>何日間</section>
-      <input type="number" v-model="howManyDays" />
+      <input type="number" v-model="howManyDays" class="input-howmanydays" />
     </div>
     <section class="member-form">
       <span>男性 </span>
@@ -45,6 +45,7 @@
       alt="thumbnail"
       width="300"
       height="200"
+      class="image-thumbnail"
     />
     <div>
       <button
@@ -61,7 +62,7 @@
     <div>
       <h1>概要（{{ dayCounter }}日目）</h1>
       <div class="prefecture-form">
-        <section>都道府県</section>
+        <section>目的地(都道府県)</section>
         <input type="text" v-model="inputPrefecture" />
       </div>
       <span class="cost-form">
@@ -76,7 +77,14 @@
             )"
             v-bind:key="index"
           >
-            {{ index + 1 }}番目： {{ route.place }}
+            <div class="route-list">
+              <span class="route-number"
+                >{{ index + 1 }}番目： {{ route.place }}</span
+              >
+              <button class="route-delete-button" @click="deleteRoute(index)">
+                削除
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -113,6 +121,14 @@
               </div>
 
               <div class="detail">{{ schedule.detail }}</div>
+              <img
+                v-bind:src="schedule.photo"
+                v-if="schedule.photo !== ''"
+                alt="photo"
+                width="300"
+                height="200"
+                class="photo-disp"
+              />
               <div
                 v-if="schedule.mouseOverFlag && !isMakingAnySchedule"
                 class="operation-button"
@@ -639,6 +655,9 @@ export default {
 
       this.isConfirmPhoto = false
     },
+    deleteRoute(idx) {
+      this.routes.splice(idx, 1)
+    },
   },
   computed: {
     isTodayScheduleEmpty() {
@@ -805,8 +824,14 @@ section {
 .input-man-number {
   width: 40px;
 }
+.input-howmanydays {
+  width: 40px;
+}
 .input-woman-number {
   width: 40px;
+}
+.photo-disp {
+  margin-right: 20px;
 }
 .display-route {
   margin: 10px;
@@ -825,5 +850,14 @@ section {
 }
 .OK {
   margin-top: 20px;
+}
+.route-delete-button {
+  margin-left: 80px; /* 子要素はabsoluteを指定 */
+}
+.image-thumbnail {
+  margin-left: 45px;
+}
+.route-list {
+  margin-top: 5px;
 }
 </style>
